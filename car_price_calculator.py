@@ -22,15 +22,19 @@ def calculate_revised_price(predictions, engine_condition, body_condition):
     revised_price = average_price * engine_condition * body_condition * market_sentiments
     return revised_price
 
-# Function to save user feedback to a CSV file
 def save_feedback(feedback, rating):
     feedback_file = "user_feedback.csv"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    # Debug: Print the current working directory
+    st.write(f"Current working directory: {os.getcwd()}")
+    
     # Check if the feedback file exists
     if not os.path.exists(feedback_file):
+        st.write("Feedback file does not exist. Creating a new one.")
         feedback_df = pd.DataFrame(columns=["Timestamp", "Feedback", "Rating"])
     else:
+        st.write("Feedback file exists. Loading it.")
         feedback_df = pd.read_csv(feedback_file)
     
     # Append new feedback
@@ -39,6 +43,7 @@ def save_feedback(feedback, rating):
     
     # Save to CSV
     feedback_df.to_csv(feedback_file, index=False)
+    st.write(f"Feedback saved to: {feedback_file}")
 
 def main():
     # Set the title of the web app with logo and site name in the header

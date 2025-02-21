@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import joblib
 from PIL import Image
+import os
+import datetime
 
 # Load the models and preprocessor
 @st.cache_resource
 def load_models_and_preprocessor():
     models = {
         'Linear Regression': joblib.load('linear_regression_model.pkl'),
-        #'Random Forest': joblib.load('random_forest_model.pkl'),
         'Gradient Boosting': joblib.load('gradient_boosting_model.pkl')
     }
     preprocessor = joblib.load('preprocessor.pkl')
@@ -20,10 +21,26 @@ def calculate_revised_price(predictions, engine_condition, body_condition):
     revised_price = average_price * engine_condition * body_condition
     return revised_price
 
+# Function to save user feedback to a CSV file
+def save_feedback(feedback, rating):
+    feedback_file = "user_feedback.csv"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Check if the feedback file exists
+    if not os.path.exists(feedback_file):
+        feedback_df = pd.DataFrame(columns=["Timestamp", "Feedback", "Rating"])
+    else:
+        feedback_df = pd.read_csv(feedback_file)
+    
+    # Append new feedback
+    new_feedback = pd.DataFrame({"Timestamp": [timestamp], "Feedback": [feedback], "Rating": [rating]})
+    feedback_df = pd.concat([feedback_df, new_feedback], ignore_index=True)
+    
+    # Save to CSV
+    feedback_df.to_csv(feedback_file, index=False)
+
 def main():
     # Set the title of the web app with logo and site name in the header
-    #logo = Image.open('logo.png')  # Ensure you have a logo image in the same directory
-    #st.image(logo, width=100)  # Resize the logo to 100px width
     st.title("Car Price Predictor 🚗")
 
     # Add a header with a description
@@ -146,25 +163,53 @@ def main():
             unsafe_allow_html=True
         )
 
+ # Feedback Section
+    st.header("Feedback")
+    feedback = st.text_area("Please share your feedback about the app:")
+    rating = st.slider("Rate your experience (1 = Poor, 5 = Excellent):", 1, 5, 3)
+
+    if st.button("Submit Feedback"):
+        if feedback.strip() == "":
+            st.warning("Please provide feedback before submitting.")
+        else:
+            save_feedback(feedback, rating)
+            st.success("Thank you for your feedback! It has been saved.")
+
+
     # Add an expander for additional information
     with st.expander("ℹ️ About this app"):
         st.write("""
-        This app uses machine learning models to predict car prices based on various features such as:
-        - City
-        - Assembly (Local/Imported)
-        - Body Type
-        - Make and Model
-        - Year
-        - Engine Capacity
-        - Transmission
-        - Fuel Type
-        - Color
-        - Registration Status
-        - Mileage
-        """)
-        st.write("The models used are Linear Regression, Random Forest, and Gradient Boosting.")
-        st.write("The hybrid model combines the results of all three models with additional parameters like engine condition and body condition.")
+        ### **About This App**
+        Welcome to the **Car Price Predictor**! 🚗
 
+        This app helps you estimate the market value of a car based on its features and condition. Whether you're buying, selling, or just curious, this tool provides a reliable price range to guide your decisions.
+
+        ### **How to Use**
+        1. Fill in the car details in the input fields.
+        2. Select the condition of the **Engine** and **Body**.
+        3. Click **Predict Price** to see the estimated value.
+        4. Use the results to make informed decisions when buying or selling a car.
+
+        ### **Defining Conditions**
+        To get the most accurate prediction, you can specify the condition of the car's **Engine** and **Body**. Here’s what each condition means:
+
+        #### **Engine Condition**
+        - **Excellent**: The engine runs perfectly, with no issues. It has been regularly serviced, and there are no unusual noises, leaks, or performance problems.
+        - **Good**: The engine runs well but may have minor issues, such as slight noise or reduced performance. It has been maintained but may need minor repairs.
+        - **Fair**: The engine runs but has noticeable issues, such as reduced power, unusual noises, or minor leaks. It may require significant repairs or maintenance.
+        - **Poor**: The engine has major issues, such as frequent breakdowns, poor performance, or significant leaks. It may need a complete overhaul or replacement.
+
+        #### **Body Condition**
+        - **Excellent**: The body has no scratches, dents, or touch-ups. The paint is original and in perfect condition.
+        - **Good**: The body has minor scratches or small dents that are not very noticeable. There may be minor touch-ups, but the overall appearance is clean.
+        - **Fair**: The body has noticeable scratches, dents, or touch-ups. The paint may have faded or chipped in some areas.
+        - **Poor**: The body has significant damage, such as large dents, rust, or multiple scratches. The paint is in poor condition, and repairs are needed.
+
+        ### **Disclaimer**
+        The predictions provided by this app are based on historical data and machine learning models. Actual market prices may vary due to factors such as demand, location, and negotiation. Use this tool as a guide, not a definitive valuation.
+        """)
+
+   
 # Run the web application
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ from PIL import Image
 def load_models_and_preprocessor():
     models = {
         'Linear Regression': joblib.load('linear_regression_model.pkl'),
-        'Random Forest': joblib.load('random_forest_model.pkl'),
+        #'Random Forest': joblib.load('random_forest_model.pkl'),
         'Gradient Boosting': joblib.load('gradient_boosting_model.pkl')
     }
     preprocessor = joblib.load('preprocessor.pkl')

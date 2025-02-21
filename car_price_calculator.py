@@ -17,8 +17,9 @@ def load_models_and_preprocessor():
 
 # Function to calculate the revised price
 def calculate_revised_price(predictions, engine_condition, body_condition):
+    market_sentiments = 1.1
     average_price = sum(predictions.values()) / len(predictions)
-    revised_price = average_price * engine_condition * body_condition
+    revised_price = average_price * engine_condition * body_condition * market_sentiments
     return revised_price
 
 # Function to save user feedback to a CSV file

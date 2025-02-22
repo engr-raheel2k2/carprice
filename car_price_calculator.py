@@ -58,7 +58,7 @@ def main():
 
     # Add an image (replace 'car_image.jpg' with your image file)
     image = Image.open('car_image.jpg')  # Ensure you have a car image in the same directory
-    st.image(image, caption='Car Image', width=500)  # Resize the car image to 500px width
+    st.image(image, caption='Car Image', width=250)  # Resize the car image to 500px width
 
     # Load the models and preprocessor
     models, preprocessor = load_models_and_preprocessor()

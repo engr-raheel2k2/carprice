@@ -5,6 +5,21 @@ from PIL import Image
 import os
 import datetime
 
+# Load the dataset to extract unique values for dropdowns
+@st.cache_data
+def load_parameters():
+    # Load the Excel file
+    parameters_df = pd.read_excel("parameters-values.xlsx")
+    
+    # Extract unique values for each category
+    cities = parameters_df['city'].dropna().unique().tolist()
+    makes = parameters_df['make'].dropna().unique().tolist()
+    fuels = parameters_df['fuel'].dropna().unique().tolist()
+    body_types = parameters_df['body-type'].dropna().unique().tolist()
+    colors = parameters_df['color'].dropna().unique().tolist()
+    
+    return cities, makes, fuels, body_types, colors
+
 # Load the models and preprocessor
 @st.cache_resource
 def load_models_and_preprocessor():
@@ -22,19 +37,15 @@ def calculate_revised_price(predictions, engine_condition, body_condition):
     revised_price = average_price * engine_condition * body_condition * market_sentiments
     return revised_price
 
+# Function to save user feedback to a CSV file
 def save_feedback(feedback, rating):
     feedback_file = "user_feedback.csv"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Debug: Print the current working directory
-    st.write(f"Current working directory: {os.getcwd()}")
-    
     # Check if the feedback file exists
     if not os.path.exists(feedback_file):
-        st.write("Feedback file does not exist. Creating a new one.")
         feedback_df = pd.DataFrame(columns=["Timestamp", "Feedback", "Rating"])
     else:
-        st.write("Feedback file exists. Loading it.")
         feedback_df = pd.read_csv(feedback_file)
     
     # Append new feedback
@@ -43,9 +54,11 @@ def save_feedback(feedback, rating):
     
     # Save to CSV
     feedback_df.to_csv(feedback_file, index=False)
-    st.write(f"Feedback saved to: {feedback_file}")
 
 def main():
+    # Load parameters for dropdowns
+    cities, makes, fuels, body_types, colors = load_parameters()
+
     # Set the title of the web app with logo and site name in the header
     st.title("Car Price Predictor 🚗")
 
@@ -58,7 +71,7 @@ def main():
 
     # Add an image (replace 'car_image.jpg' with your image file)
     image = Image.open('car_image.jpg')  # Ensure you have a car image in the same directory
-    st.image(image, caption='Car Image', width=300)  # Resize the car image to 500px width
+    st.image(image, caption='Car Image', width=300)  # Resize the car image to 300px width
 
     # Load the models and preprocessor
     models, preprocessor = load_models_and_preprocessor()
@@ -70,22 +83,22 @@ def main():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        city = st.selectbox("City", ["Lahore", "Karachi", "Islamabad", "Peshawar", "Faisalabad", "Other"])
+        city = st.selectbox("City", cities)
         assembly = st.selectbox("Assembly", ["Local", "Imported"])
-        body = st.selectbox("Body Type", ["Sedan", "Hatchback", "SUV", "Coupe", "Other"])
+        body = st.selectbox("Body Type", body_types)
 
     with col2:
-        make = st.selectbox("Make", ["Toyota", "Honda", "Suzuki", "Daihatsu", "Other"])
+        make = st.selectbox("Make", makes)
         model = st.text_input("Model", "Corolla")
         year = st.number_input("Year", min_value=1990, max_value=2023, value=2017)
 
     with col3:
         engine = st.number_input("Engine Capacity (cc)", min_value=500, max_value=5000, value=1800)
         transmission = st.selectbox("Transmission", ["Manual", "Automatic"])
-        fuel = st.selectbox("Fuel Type", ["Petrol", "Diesel", "CNG", "Hybrid", "Electric"])
+        fuel = st.selectbox("Fuel Type", fuels)
 
     with col4:
-        color = st.selectbox("Color", ["White", "Black", "Silver", "Grey", "Red", "Blue", "Other"])
+        color = st.selectbox("Color", colors)
         registered = st.selectbox("Is the car registered?", ["Yes", "No"])
         mileage = st.number_input("Mileage (km)", min_value=0, max_value=500000, value=86000)
 
@@ -169,18 +182,17 @@ def main():
             unsafe_allow_html=True
         )
 
- # Feedback Section
-  #  st.header("Feedback")
-   # feedback = st.text_area("Please share your feedback about the app:")
-  #  rating = st.slider("Rate your experience (1 = Poor, 5 = Excellent):", 1, 5, 3)
+    # Feedback Section
+    st.header("Feedback")
+    feedback = st.text_area("Please share your feedback about the app:")
+    rating = st.slider("Rate your experience (1 = Poor, 5 = Excellent):", 1, 5, 3)
 
-   # if st.button("Submit Feedback"):
-   #     if feedback.strip() == "":
-   #         st.warning("Please provide feedback before submitting.")
-   #     else:
-   #         save_feedback(feedback, rating)
-   #         st.success("Thank you for your feedback! It has been saved.")
-
+    if st.button("Submit Feedback"):
+        if feedback.strip() == "":
+            st.warning("Please provide feedback before submitting.")
+        else:
+            save_feedback(feedback, rating)
+            st.success("Thank you for your feedback! It has been saved.")
 
     # Add an expander for additional information
     with st.expander("ℹ️ About this app"):
@@ -215,7 +227,6 @@ def main():
         The predictions provided by this app are based on historical data and machine learning models. Actual market prices may vary due to factors such as demand, location, and negotiation. Use this tool as a guide, not a definitive valuation.
         """)
 
-   
 # Run the web application
 if __name__ == "__main__":
     main()

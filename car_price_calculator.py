@@ -183,16 +183,16 @@ def main():
         )
 
     # Feedback Section
-    st.header("Feedback")
-    feedback = st.text_area("Please share your feedback about the app:")
-    rating = st.slider("Rate your experience (1 = Poor, 5 = Excellent):", 1, 5, 3)
+    #st.header("Feedback")
+    #feedback = st.text_area("Please share your feedback about the app:")
+    #rating = st.slider("Rate your experience (1 = Poor, 5 = Excellent):", 1, 5, 3)
 
-    if st.button("Submit Feedback"):
-        if feedback.strip() == "":
-            st.warning("Please provide feedback before submitting.")
-        else:
-            save_feedback(feedback, rating)
-            st.success("Thank you for your feedback! It has been saved.")
+    #if st.button("Submit Feedback"):
+    #    if feedback.strip() == "":
+    #        st.warning("Please provide feedback before submitting.")
+    #    else:
+     #       save_feedback(feedback, rating)
+     #       st.success("Thank you for your feedback! It has been saved.")
 
     # Add an expander for additional information
     with st.expander("ℹ️ About this app"):
